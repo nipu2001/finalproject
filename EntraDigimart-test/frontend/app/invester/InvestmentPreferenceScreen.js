@@ -24,21 +24,25 @@ const InvestmentPreferenceScreen = () => {
   const [riskLevel, setRiskLevel] = useState('Moderate');
 
   const categories = [
-    { name: 'Textile', icon: 'shirt', color: ['#22c55e', '#16a34a'] },
-    { name: 'Spices', icon: 'leaf', color: ['#f59e0b', '#d97706'] },
-    { name: 'Handicrafts', icon: 'color-palette', color: ['#8b5cf6', '#7c3aed'] },
-    { name: 'Pottery', icon: 'flask', color: ['#ef4444', '#dc2626'] },
+    { name: 'Tea', icon: 'leaf', color: ['#16a34a', '#15803d'] },
+    { name: 'Handloom', icon: 'shirt', color: ['#8b5cf6', '#7c3aed'] },
+    { name: 'Ceramics', icon: 'cube', color: ['#f97316', '#ea580c'] },
     { name: 'Jewelry', icon: 'diamond', color: ['#3b82f6', '#2563eb'] },
-    { name: 'Food', icon: 'fast-food', color: ['#10b981', '#059669'] },
+    { name: 'Spices', icon: 'bonfire', color: ['#ef4444', '#dc2626'] },
+    { name: 'Handicraft', icon: 'construct', color: ['#06b6d4', '#0891b2'] },
   ];
-  const regions = [
-    { name: 'Kandy', icon: 'location' },
-    { name: 'Colombo', icon: 'location' },
-    { name: 'Matale', icon: 'location' },
-    { name: 'Galle', icon: 'location' },
-    { name: 'Ratnapura', icon: 'location' },
-    { name: 'Jaffna', icon: 'location' },
+
+  // Sri Lanka 25 districts
+  const districts = [
+    'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo',
+    'Galle', 'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara',
+    'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar',
+    'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya',
+    'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'
   ];
+
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [showDistrictPicker, setShowDistrictPicker] = useState(false);
 
   const riskLevels = [
     { name: 'Conservative', icon: 'shield-checkmark', color: ['#22c55e', '#16a34a'], desc: 'Low risk, stable returns' },
@@ -54,12 +58,22 @@ const InvestmentPreferenceScreen = () => {
     }
   };
 
-  const toggleRegion = (region) => {
-    if (selectedRegions.includes(region)) {
-      setSelectedRegions(selectedRegions.filter(r => r !== region));
-    } else {
-      setSelectedRegions([...selectedRegions, region]);
+  const handleAddDistrict = () => {
+    if (!selectedDistrict) {
+      Alert.alert('Select District', 'Please select a district from the dropdown.');
+      return;
     }
+    if (selectedRegions.includes(selectedDistrict)) {
+      Alert.alert('Already Added', `${selectedDistrict} is already in your preferred regions.`);
+      setSelectedDistrict('');
+      return;
+    }
+    setSelectedRegions([...selectedRegions, selectedDistrict]);
+    setSelectedDistrict('');
+  };
+
+  const handleRemoveRegion = (regionName) => {
+    setSelectedRegions(selectedRegions.filter(r => r !== regionName));
   };
 
   useEffect(() => {
@@ -128,29 +142,16 @@ const InvestmentPreferenceScreen = () => {
     </TouchableOpacity>
   );
 
-  const RegionChip = ({ name, icon, selected }) => (
-    <TouchableOpacity 
-      onPress={() => toggleRegion(name)}
-      style={styles.chipContainer}
-    >
-      {selected ? (
-        <LinearGradient
-          colors={['#3b82f6', '#2563eb']}
-          style={styles.chip}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <Ionicons name={icon} size={16} color="white" />
-          <Text style={styles.chipTextActive}>{name}</Text>
-          <Ionicons name="checkmark-circle" size={16} color="white" />
-        </LinearGradient>
-      ) : (
-        <View style={styles.chipInactive}>
-          <Ionicons name={icon} size={16} color="#64748b" />
-          <Text style={styles.chipTextInactive}>{name}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
+  const RegionChip = ({ name, onRemove }) => (
+    <View style={styles.regionChipContainer}>
+      <View style={styles.regionChipContent}>
+        <Ionicons name="location" size={16} color="#3b82f6" />
+        <Text style={styles.regionChipText}>{name}</Text>
+      </View>
+      <TouchableOpacity onPress={() => onRemove(name)} style={styles.removeButton}>
+        <Ionicons name="close-circle" size={20} color="#ef4444" />
+      </TouchableOpacity>
+    </View>
   );
 
   const RiskCard = ({ name, icon, color, desc, selected }) => (
@@ -265,17 +266,79 @@ const InvestmentPreferenceScreen = () => {
             <Ionicons name="map" size={20} color="#1e293b" />
             <Text style={styles.sectionTitle}>Preferred Regions</Text>
           </View>
-          <Text style={styles.sectionSubtitle}>Choose regions you want to invest in</Text>
-          <View style={styles.chipsContainer}>
-            {regions.map((region) => (
-              <RegionChip
-                key={region.name}
-                name={region.name}
-                icon={region.icon}
-                selected={selectedRegions.includes(region.name)}
+          <Text style={styles.sectionSubtitle}>Select districts you want to invest in</Text>
+          
+          {/* District Dropdown */}
+          <View style={styles.districtPickerCard}>
+            <TouchableOpacity 
+              style={styles.districtPickerButton}
+              onPress={() => setShowDistrictPicker(!showDistrictPicker)}
+            >
+              <View style={styles.districtPickerLeft}>
+                <Ionicons name="location-outline" size={20} color="#64748b" />
+                <Text style={styles.districtPickerText}>
+                  {selectedDistrict || 'Select a district'}
+                </Text>
+              </View>
+              <Ionicons 
+                name={showDistrictPicker ? "chevron-up" : "chevron-down"} 
+                size={20} 
+                color="#64748b" 
               />
-            ))}
+            </TouchableOpacity>
+
+            {showDistrictPicker && (
+              <ScrollView style={styles.districtDropdown} nestedScrollEnabled>
+                {districts.map((district) => (
+                  <TouchableOpacity
+                    key={district}
+                    style={styles.districtOption}
+                    onPress={() => {
+                      setSelectedDistrict(district);
+                      setShowDistrictPicker(false);
+                    }}
+                  >
+                    <Ionicons name="location" size={18} color="#3b82f6" />
+                    <Text style={styles.districtOptionText}>{district}</Text>
+                    {selectedDistrict === district && (
+                      <Ionicons name="checkmark" size={20} color="#22c55e" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+
+            <TouchableOpacity 
+              style={styles.addDistrictButton}
+              onPress={handleAddDistrict}
+            >
+              <LinearGradient
+                colors={['#3b82f6', '#2563eb']}
+                style={styles.addDistrictGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="add-circle" size={20} color="white" />
+                <Text style={styles.addDistrictText}>Add District</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
+
+          {/* Selected Districts */}
+          {selectedRegions.length > 0 && (
+            <View style={styles.selectedRegionsContainer}>
+              <Text style={styles.selectedRegionsLabel}>Selected Districts:</Text>
+              <View style={styles.regionChipsWrapper}>
+                {selectedRegions.map((region) => (
+                  <RegionChip
+                    key={region}
+                    name={region}
+                    onRemove={handleRemoveRegion}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Risk Tolerance */}
@@ -394,6 +457,80 @@ const styles = StyleSheet.create({
   saveButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold', marginLeft: 10 },
   cancelButton: { paddingVertical: 16, alignItems: 'center' },
   cancelButtonText: { color: '#64748b', fontSize: 16, fontWeight: '600' },
+  
+  // District Picker Styles
+  districtPickerCard: { 
+    backgroundColor: 'white', 
+    borderRadius: 15, 
+    padding: 15, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.1, 
+    shadowRadius: 8, 
+    elevation: 3,
+    marginBottom: 15
+  },
+  districtPickerButton: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginBottom: 10
+  },
+  districtPickerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  districtPickerText: { fontSize: 16, color: '#1e293b', marginLeft: 10 },
+  districtDropdown: { 
+    maxHeight: 200, 
+    backgroundColor: '#f8fafc', 
+    borderRadius: 12, 
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb'
+  },
+  districtOption: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingVertical: 12, 
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb'
+  },
+  districtOptionText: { fontSize: 15, color: '#1e293b', marginLeft: 10, flex: 1 },
+  addDistrictButton: { overflow: 'hidden', borderRadius: 12 },
+  addDistrictGradient: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20
+  },
+  addDistrictText: { color: 'white', fontSize: 15, fontWeight: '600', marginLeft: 8 },
+  
+  // Selected Regions
+  selectedRegionsContainer: { marginTop: 10 },
+  selectedRegionsLabel: { fontSize: 14, fontWeight: '600', color: '#64748b', marginBottom: 10 },
+  regionChipsWrapper: { flexDirection: 'row', flexWrap: 'wrap' },
+  regionChipContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 20,
+    paddingLeft: 12,
+    paddingRight: 8,
+    paddingVertical: 8,
+    marginRight: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb'
+  },
+  regionChipContent: { flexDirection: 'row', alignItems: 'center', marginRight: 6 },
+  regionChipText: { fontSize: 14, color: '#1e293b', fontWeight: '500', marginLeft: 6 },
+  removeButton: { marginLeft: 4 },
 });
 
 function numOrNull(v) {
