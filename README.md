@@ -123,8 +123,4 @@ Edit `frontend/api.js` to set `BASE_URL` to your backend IP (e.g., `http://<YOUR
 - Database initialization creates an admin user using `ADMIN_EMAIL` and `ADMIN_PASSWORD` from `.env`.
 - For local device testing, set the backend IP in `frontend/api.js` and ensure both devices are on same network.
 
----
 
-## License
-
-Add license information if required (e.g., MIT).
